@@ -40,10 +40,7 @@ const categoryMeta: Record<string, { label: string; icon: string; color: string 
 const stats = {
   total: allPosts.length,
   categories: byCategory.size,
-  thisWeek: allPosts.filter(p => {
-    const d = new Date(p.data.date);
-    return (Date.now() - d.getTime()) < 7 * 24 * 60 * 60 * 1000;
-  }).length,
+  thisWeek: allPosts.filter(p => (Date.now() - new Date(p.data.date).getTime()) < 7 * 24 * 60 * 60 * 1000).length,
   thisMonth: allPosts.filter(p => {
     const d = new Date(p.data.date);
     const now = new Date();
@@ -53,7 +50,7 @@ const stats = {
 
 const activeCategories = collectionNames.filter(c => byCategory.has(c));
 
-// Group ALL posts by date
+// Group posts by date
 const byDate = new Map<string, any[]>();
 for (const post of allPosts) {
   const key = new Date(post.data.date).toISOString().slice(0, 10);
@@ -62,20 +59,26 @@ for (const post of allPosts) {
 }
 const sortedDates = [...byDate.keys()].sort((a, b) => b.localeCompare(a));
 
-const postsJson = JSON.stringify(sortedDates.map(date => ({
-  date,
-  posts: byDate.get(date)!.map(p => ({
-    title: p.data.title,
-    description: p.data.description || "",
-    category: p._collection,
-    tags: p.data.tags || [],
-    image: p.data.image || "",
-    href: `${base}${p._collection}/${p.id}/`,
-    catLabel: categoryMeta[p._collection]?.label || p._collection,
-    catColor: categoryMeta[p._collection]?.color || "#3b82f6",
-    catIcon: categoryMeta[p._collection]?.icon || "fa-file",
-  }))
-})));
+const defaultImages: Record<string, string> = {
+  family: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=680&h=400&fit=crop",
+  fatima: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=680&h=400&fit=crop",
+  yassine: "https://images.unsplash.com/photo-1523050854058-8df90110c8f1?w=680&h=400&fit=crop",
+  soufiane: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=680&h=400&fit=crop",
+  youssouf: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=680&h=400&fit=crop",
+  salma: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=680&h=400&fit=crop",
+  veille: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=680&h=400&fit=crop",
+  reputation: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=680&h=400&fit=crop",
+  business: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=680&h=400&fit=crop",
+  retrospectives: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=680&h=400&fit=crop",
+  "review-strategy": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=680&h=400&fit=crop",
+};
+
+function formatDateFR(dateStr: string) {
+  const d = new Date(dateStr + "T00:00:00");
+  const days = ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
+  const months = ["janvier","f\u00e9vrier","mars","avril","mai","juin","juillet","ao\u00fbt","septembre","octobre","novembre","d\u00e9cembre"];
+  return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
 ---
 <BaseLayout title="Tableau de bord">
   <div class="metric-grid animate-in">
@@ -123,105 +126,54 @@ const postsJson = JSON.stringify(sortedDates.map(date => ({
   )}
 
   <div class="animate-in delay-2">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.75rem;">
-      <h2 class="section-title" style="margin:0;"><i class="fa-solid fa-clock-rotate-left"></i> Journal</h2>
-      <div style="display:flex;align-items:center;gap:0.5rem;">
-        <button id="prevDay" class="day-nav-btn" title="Jour pr\u00e9c\u00e9dent"><i class="fa-solid fa-chevron-left"></i></button>
-        <span id="dayLabel" style="font-weight:700;font-size:0.9rem;min-width:200px;text-align:center;"></span>
-        <button id="nextDay" class="day-nav-btn" title="Jour suivant"><i class="fa-solid fa-chevron-right"></i></button>
-        <button id="todayBtn" class="day-nav-btn" style="margin-left:0.5rem;font-size:0.75rem;padding:0.4rem 0.75rem;">Aujourd&#39;hui</button>
+    <h2 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Journal</h2>
+
+    {sortedDates.map(dateKey => {
+      const dayPosts = byDate.get(dateKey)!;
+      return (
+        <div style="margin-bottom:2rem;">
+          <h3 style="font-size:0.85rem;font-weight:700;color:var(--text-secondary);margin-bottom:0.75rem;text-transform:capitalize;">
+            <i class="fa-regular fa-calendar" style="margin-right:0.4rem;"></i>
+            {formatDateFR(dateKey)}
+          </h3>
+          {dayPosts.map(post => {
+            const cat = post._collection;
+            const meta = categoryMeta[cat];
+            const img = post.data.image || defaultImages[cat] || defaultImages.business;
+            const desc = post.data.description || "";
+            return (
+              <a href={`${base}${cat}/${post.id}/`} class="feed-card">
+                <div class="feed-card-img">
+                  <img src={img} alt="" loading="lazy" />
+                </div>
+                <div class="feed-card-body">
+                  <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.35rem;">
+                    <span class="cat-dot" style={`background:${meta.color};`}></span>
+                    <span style={`font-size:0.7rem;font-weight:600;color:${meta.color};`}>{meta.label}</span>
+                  </div>
+                  <h3 style="font-size:1rem;font-weight:700;margin:0 0 0.3rem;line-height:1.3;">{post.data.title}</h3>
+                  {desc && <p style="font-size:0.8rem;color:var(--text-secondary);margin:0 0 0.4rem;line-height:1.4;">{desc.length > 150 ? desc.slice(0, 150) + "..." : desc}</p>}
+                  {post.data.tags && post.data.tags.length > 0 && (
+                    <div style="display:flex;gap:0.3rem;flex-wrap:wrap;">
+                      {post.data.tags.slice(0, 3).map((tag: string) => (
+                        <span style="font-size:0.65rem;background:var(--bg-surface);padding:0.15rem 0.5rem;border-radius:99px;color:var(--text-secondary);">{tag}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      );
+    })}
+
+    {allPosts.length === 0 && (
+      <div class="empty-state">
+        <i class="fa-solid fa-feather-pointed"></i>
+        <h3>Bienvenue sur MW Blog</h3>
+        <p>Les articles seront publi\u00e9s automatiquement par OpenClaw.</p>
       </div>
-    </div>
-
-    <div id="dayFeed"></div>
-
-    <div id="emptyDay" style="display:none;text-align:center;padding:3rem 1rem;color:var(--text-muted);">
-      <i class="fa-regular fa-calendar-xmark" style="font-size:2rem;margin-bottom:0.75rem;display:block;"></i>
-      <p>Aucune publication ce jour</p>
-    </div>
+    )}
   </div>
-
-  <script is:inline define:vars={{ postsJson }}>
-    (function() {
-      var allDays = JSON.parse(postsJson);
-      var currentIdx = 0;
-
-      var defaultImages = {
-        family: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=680&h=400&fit=crop",
-        fatima: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=680&h=400&fit=crop",
-        yassine: "https://images.unsplash.com/photo-1523050854058-8df90110c8f1?w=680&h=400&fit=crop",
-        soufiane: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=680&h=400&fit=crop",
-        youssouf: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=680&h=400&fit=crop",
-        salma: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=680&h=400&fit=crop",
-        veille: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=680&h=400&fit=crop",
-        reputation: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=680&h=400&fit=crop",
-        business: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=680&h=400&fit=crop",
-        retrospectives: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=680&h=400&fit=crop",
-        "review-strategy": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=680&h=400&fit=crop"
-      };
-
-      function formatDate(dateStr) {
-        var d = new Date(dateStr + "T00:00:00");
-        return d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
-      }
-
-      function renderDay() {
-        var feed = document.getElementById("dayFeed");
-        var empty = document.getElementById("emptyDay");
-        var label = document.getElementById("dayLabel");
-        var nextBtn = document.getElementById("nextDay");
-        var prevBtn = document.getElementById("prevDay");
-
-        if (!allDays.length) {
-          label.textContent = "Aucun article";
-          feed.innerHTML = "";
-          empty.style.display = "block";
-          return;
-        }
-
-        var day = allDays[currentIdx];
-        label.textContent = formatDate(day.date);
-        nextBtn.disabled = currentIdx <= 0;
-        prevBtn.disabled = currentIdx >= allDays.length - 1;
-
-        if (!day.posts.length) {
-          feed.innerHTML = "";
-          empty.style.display = "block";
-          return;
-        }
-
-        empty.style.display = "none";
-        feed.innerHTML = day.posts.map(function(p) {
-          var img = p.image || defaultImages[p.category] || defaultImages.business;
-          var tags = (p.tags || []).slice(0, 3).map(function(t) {
-            return '<span style="font-size:0.65rem;background:var(--bg-surface);padding:0.15rem 0.5rem;border-radius:99px;color:var(--text-secondary);">' + t + '</span>';
-          }).join("");
-          return '<a href="' + p.href + '" class="feed-card">' +
-            '<div class="feed-card-img"><img src="' + img + '" alt="" loading="lazy" /></div>' +
-            '<div class="feed-card-body">' +
-              '<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.35rem;">' +
-                '<span class="cat-dot" style="background:' + p.catColor + ';"></span>' +
-                '<span style="font-size:0.7rem;font-weight:600;color:' + p.catColor + ';">' + p.catLabel + '</span>' +
-              '</div>' +
-              '<h3 style="font-size:1rem;font-weight:700;margin:0 0 0.3rem;line-height:1.3;">' + p.title + '</h3>' +
-              (p.description ? '<p style="font-size:0.8rem;color:var(--text-secondary);margin:0 0 0.4rem;line-height:1.4;">' + p.description.slice(0, 150) + (p.description.length > 150 ? "..." : "") + '</p>' : '') +
-              (tags ? '<div style="display:flex;gap:0.3rem;flex-wrap:wrap;">' + tags + '</div>' : '') +
-            '</div>' +
-          '</a>';
-        }).join("");
-      }
-
-      document.getElementById("prevDay").addEventListener("click", function() {
-        if (currentIdx < allDays.length - 1) { currentIdx++; renderDay(); }
-      });
-      document.getElementById("nextDay").addEventListener("click", function() {
-        if (currentIdx > 0) { currentIdx--; renderDay(); }
-      });
-      document.getElementById("todayBtn").addEventListener("click", function() {
-        currentIdx = 0; renderDay();
-      });
-
-      renderDay();
-    })();
-  </script>
 </BaseLayout>
