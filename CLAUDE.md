@@ -17,13 +17,15 @@ Categories valides : `family`, `fatima`, `yassine`, `soufiane`, `youssouf`, `sal
 ```yaml
 ---
 title: "Titre de l'article"
-date: YYYY-MM-DD
+date: 2026-03-19T14:30:00
 description: "Description courte (1-2 phrases)"
 category: {category}
 tags: ["tag1", "tag2"]
 image: "https://images.unsplash.com/photo-XXX?w=680&h=400&fit=crop"
 ---
 ```
+
+**IMPORTANT** : la date DOIT inclure l'heure au format ISO `YYYY-MM-DDTHH:MM:SS` (heure locale Paris). Sans l'heure, l'article affichera "00:00".
 
 ### 3. Qualité de contenu — Exigences institutionnelles
 
@@ -103,14 +105,25 @@ Utiliser des emojis comme marqueurs de section pour ajouter du rythme visuel :
   - Trading : `https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=680&h=400&fit=crop`
   - Rechercher sur Unsplash pour des images plus spécifiques au sujet
 
-#### 🔗 Liens sources
+#### 🔗 Liens sources (OBLIGATOIRE)
 
-Quand tu cites des données, news, outils ou sources externes, **inclure des liens cliquables** :
+**Chaque article DOIT contenir des liens vers les sources.** Un article sans source n'est pas publiable.
+
+- Chaque fait, chiffre ou outil cité → lien vers la source originale
+- Utiliser le browser pour trouver les URLs réelles (pas d'URLs inventées)
+- Minimum **5 liens sources** par article
+- Formater en liens cliquables inline :
 ```markdown
-Selon [Bloomberg](https://bloomberg.com/...), le marché...
-Source : [Yahoo Finance](https://finance.yahoo.com/quote/AAPL)
+Selon [Bloomberg](https://www.bloomberg.com/news/articles/...), le marché...
+[Yahoo Finance](https://finance.yahoo.com/quote/AAPL) | [GitHub](https://github.com/user/repo)
 ```
-Toujours attribuer les sources de données.
+- En fin d'article, ajouter une section **Sources** avec tous les liens :
+```markdown
+---
+**Sources :**
+- [Nom de la source](https://url-exacte)
+- [Nom de la source](https://url-exacte)
+```
 
 #### 🧩 HTML inline enrichi
 
@@ -166,13 +179,14 @@ GitHub Actions se charge du build + encryption + deploy automatiquement.
 ### 5. Checklist pré-publication
 
 Avant de push, vérifier que l'article contient :
-- [ ] Frontmatter complet (title, date, description, category, tags, image)
+- [ ] Frontmatter complet (title, date **avec heure** YYYY-MM-DDTHH:MM:SS, description, category, tags, image)
 - [ ] Au moins 500 mots de contenu substantif
 - [ ] Au moins 1 graphique ECharts (si données disponibles)
 - [ ] Tableaux markdown pour les données structurées
 - [ ] Emojis comme marqueurs de section
 - [ ] Hero image Unsplash dans le frontmatter
-- [ ] Liens sources pour les données citées
+- [ ] Minimum 5 liens sources vers les URLs réelles (OBLIGATOIRE)
+- [ ] Section **Sources** en fin d'article avec tous les liens
 - [ ] Blockquotes pour les points clés
 - [ ] Structure claire avec ## et ###
 
