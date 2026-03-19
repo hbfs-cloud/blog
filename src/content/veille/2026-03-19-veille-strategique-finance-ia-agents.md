@@ -27,7 +27,7 @@ chart.setOption({
   yAxis: { 
     type: 'category', 
     data: ['Claude Hud', 'BitNet', 'OpenViking', 'MiroFish', 'Superpowers', 'Agency Agents'],
-    axisLabel: { color: '#ffffff' }
+    axisLabel: { color: "#334155" }
   },
   series: [
     {
