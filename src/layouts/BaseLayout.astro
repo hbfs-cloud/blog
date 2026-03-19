@@ -39,10 +39,13 @@ const workSection = categories.filter(c => ['veille','reputation','business','re
 </head>
 <body>
   <div class="app-layout">
+    <!-- Mobile overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
         <h1><i class="fa-solid fa-chart-pie"></i> MW Blog</h1>
-        <p>Journal privé & veille</p>
+        <p>Journal priv&eacute; &amp; veille</p>
       </div>
 
       <nav class="sidebar-section">
@@ -79,12 +82,12 @@ const workSection = categories.filter(c => ['veille','reputation','business','re
     <main class="main-content">
       <header class="top-bar">
         <button class="mobile-toggle" id="menuToggle" aria-label="Menu">
-          <i class="fa-solid fa-bars"></i>
+          <i class="fa-solid fa-bars" id="menuIcon"></i>
         </button>
         <span class="top-bar-title">{title}</span>
         <button class="search-btn" id="searchBtn">
           <i class="fa-solid fa-magnifying-glass"></i>
-          Rechercher
+          <span class="search-btn-text">Rechercher</span>
           <kbd>⌘K</kbd>
         </button>
       </header>
@@ -94,30 +97,59 @@ const workSection = categories.filter(c => ['veille','reputation','business','re
       </div>
 
       <footer class="footer">
-        <p>&copy; {new Date().getFullYear()} El Ouadi — Journal privé</p>
+        <p>&copy; {new Date().getFullYear()} El Ouadi — Journal priv&eacute;</p>
       </footer>
     </main>
   </div>
 
+  <!-- Scroll to top FAB -->
+  <button class="fab" id="scrollTopBtn" style="display:none;" aria-label="Retour en haut">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
+
   <script is:inline>
-    // Mobile sidebar toggle
+    // Mobile sidebar toggle with overlay
     const toggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
-    if (toggle && sidebar) {
-      toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
-      document.addEventListener('click', (e) => {
-        if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== toggle) {
-          sidebar.classList.remove('open');
-        }
-      });
+    const overlay = document.getElementById('sidebarOverlay');
+    const menuIcon = document.getElementById('menuIcon');
+
+    function openSidebar() {
+      sidebar.classList.add('open');
+      overlay.classList.add('active');
+      menuIcon.className = 'fa-solid fa-xmark';
     }
-    // Cmd+K search
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('active');
+      menuIcon.className = 'fa-solid fa-bars';
+    }
+
+    if (toggle && sidebar) {
+      toggle.addEventListener('click', () => {
+        if (sidebar.classList.contains('open')) closeSidebar();
+        else openSidebar();
+      });
+      if (overlay) overlay.addEventListener('click', closeSidebar);
+    }
+
+    // Cmd+K search placeholder
     document.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        // TODO: open search modal
       }
     });
+
+    // Scroll to top FAB
+    const fab = document.getElementById('scrollTopBtn');
+    if (fab) {
+      window.addEventListener('scroll', () => {
+        fab.style.display = window.scrollY > 400 ? 'flex' : 'none';
+      });
+      fab.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    }
   </script>
 </body>
 </html>

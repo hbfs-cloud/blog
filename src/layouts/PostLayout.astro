@@ -26,34 +26,127 @@ const categoryLabels: Record<string, string> = {
   business: 'Business', retrospectives: 'Rétros', 'review-strategy': 'Portfolios',
 };
 
+const defaultImages: Record<string, string> = {
+  family: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=1200&h=500&fit=crop',
+  fatima: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=1200&h=500&fit=crop',
+  yassine: 'https://images.unsplash.com/photo-1523050854058-8df90110c8f1?w=1200&h=500&fit=crop',
+  soufiane: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=1200&h=500&fit=crop',
+  youssouf: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&h=500&fit=crop',
+  salma: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=1200&h=500&fit=crop',
+  veille: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=500&fit=crop',
+  reputation: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=500&fit=crop',
+  business: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=500&fit=crop',
+  retrospectives: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=1200&h=500&fit=crop',
+  'review-strategy': 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1200&h=500&fit=crop',
+};
+
 const color = categoryColors[category] || 'var(--accent)';
 const label = categoryLabels[category] || category;
+const heroImg = image || defaultImages[category] || defaultImages.business;
 const dateStr = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 ---
 <BaseLayout title={title} description={description} activeCategory={category}>
+  <!-- Reading progress bar -->
+  <div class="reading-progress" id="readingProgress"></div>
+
   <article>
-    <div class="post-header">
-      <div class="card-category" style={`color:${color}`}>
-        <span class="cat-dot" style={`background:${color}`}></span>
-        <a href={`${base}${category}/`} style={`color:${color}`}>{label}</a>
-      </div>
-      <h1>{title}</h1>
-      <div class="post-header-meta">
-        <span><i class="fa-regular fa-calendar"></i> {dateStr}</span>
-        {tags.length > 0 && (
-          <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
-            {tags.map(tag => (
-              <a href={`${base}tags/${tag}/`} class="tag">{tag}</a>
-            ))}
-          </div>
-        )}
+    <!-- Back link -->
+    <a href={`${base}${category}/`} class="post-back-link">
+      <i class="fa-solid fa-arrow-left"></i> Retour {label}
+    </a>
+
+    <!-- Hero image with overlay title -->
+    <div class="post-hero-wrapper">
+      <img src={heroImg} alt={title} class="post-hero" />
+      <div class="post-hero-overlay"></div>
+      <div class="post-hero-content">
+        <div class="card-category" style={`color:${color}`}>
+          <span class="cat-dot" style={`background:${color}`}></span>
+          {label}
+        </div>
+        <h1>{title}</h1>
       </div>
     </div>
 
-    {image && <img src={image} alt={title} class="post-hero" />}
+    <!-- Post meta -->
+    <div class="post-header-meta" style="margin-bottom:2rem;">
+      <span><i class="fa-regular fa-calendar"></i> {dateStr}</span>
+      {tags.length > 0 && (
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+          {tags.map(tag => (
+            <a href={`${base}tags/${tag}/`} class="tag">{tag}</a>
+          ))}
+        </div>
+      )}
+    </div>
 
-    <div class="post-content">
+    <!-- Content -->
+    <div class="post-content" id="postContent">
       <slot />
     </div>
+
+    <!-- Share buttons -->
+    <div class="share-buttons" style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+      <span style="font-size:0.75rem;font-weight:600;color:var(--text-muted);margin-right:0.5rem;display:flex;align-items:center;">Partager</span>
+      <button class="share-btn" onclick="navigator.clipboard.writeText(window.location.href)" title="Copier le lien">
+        <i class="fa-solid fa-link"></i>
+      </button>
+      <a class="share-btn" href={`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(title + ' — ')}`} title="Email">
+        <i class="fa-solid fa-envelope"></i>
+      </a>
+    </div>
   </article>
+
+  <!-- Table of contents (desktop) -->
+  <nav class="toc-sidebar" id="tocSidebar" style="display:none;">
+    <h4><i class="fa-solid fa-list"></i> Sommaire</h4>
+    <div id="tocContent"></div>
+  </nav>
+
+  <script is:inline>
+    // Reading progress bar
+    const progressBar = document.getElementById('readingProgress');
+    if (progressBar) {
+      window.addEventListener('scroll', () => {
+        const h = document.documentElement;
+        const scrollTop = h.scrollTop || document.body.scrollTop;
+        const scrollHeight = h.scrollHeight - h.clientHeight;
+        const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+        progressBar.style.width = progress + '%';
+      });
+    }
+
+    // Build table of contents from h2/h3 in post-content
+    const content = document.getElementById('postContent');
+    const tocSidebar = document.getElementById('tocSidebar');
+    const tocContent = document.getElementById('tocContent');
+    if (content && tocSidebar && tocContent) {
+      const headings = content.querySelectorAll('h2, h3');
+      if (headings.length > 2) {
+        tocSidebar.style.display = 'block';
+        headings.forEach((h, i) => {
+          const id = 'heading-' + i;
+          h.id = id;
+          const a = document.createElement('a');
+          a.href = '#' + id;
+          a.textContent = h.textContent;
+          if (h.tagName === 'H3') a.classList.add('toc-h3');
+          tocContent.appendChild(a);
+        });
+
+        // Highlight active heading on scroll
+        const tocLinks = tocContent.querySelectorAll('a');
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              tocLinks.forEach(l => l.classList.remove('active'));
+              const link = tocContent.querySelector('a[href="#' + entry.target.id + '"]');
+              if (link) link.classList.add('active');
+            }
+          });
+        }, { rootMargin: '-80px 0px -80% 0px' });
+        headings.forEach(h => observer.observe(h));
+      }
+    }
+  </script>
 </BaseLayout>

@@ -15,9 +15,11 @@ for (const name of collectionNames) {
 }
 
 allPosts.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
-const recentPosts = allPosts.slice(0, 12);
 
-// Group by category for section display
+const featuredPost = allPosts[0];
+const recentPosts = allPosts.slice(1, 13);
+
+// Group by category for counts and sections
 const byCategory = new Map<string, any[]>();
 for (const post of allPosts) {
   const cat = post._collection;
@@ -25,10 +27,18 @@ for (const post of allPosts) {
   byCategory.get(cat)!.push(post);
 }
 
-const categoryLabels: Record<string, string> = {
-  family: 'Famille', fatima: 'Fatima', yassine: 'Yassine', soufiane: 'Soufiane',
-  youssouf: 'Youssouf', salma: 'Salma', veille: 'Veille', reputation: 'Réputation',
-  business: 'Business', retrospectives: 'Rétros', 'review-strategy': 'Portfolios',
+const categoryMeta: Record<string, { label: string; icon: string; color: string }> = {
+  family: { label: 'Famille', icon: 'fa-users', color: '#8b5cf6' },
+  fatima: { label: 'Fatima', icon: 'fa-heart', color: '#ec4899' },
+  yassine: { label: 'Yassine', icon: 'fa-graduation-cap', color: '#3b82f6' },
+  soufiane: { label: 'Soufiane', icon: 'fa-flask', color: '#22c55e' },
+  youssouf: { label: 'Youssouf', icon: 'fa-futbol', color: '#f59e0b' },
+  salma: { label: 'Salma', icon: 'fa-star', color: '#f472b6' },
+  veille: { label: 'Veille', icon: 'fa-radar', color: '#14b8a6' },
+  reputation: { label: 'Réputation', icon: 'fa-shield-halved', color: '#f97316' },
+  business: { label: 'Business', icon: 'fa-briefcase', color: '#0ea5e9' },
+  retrospectives: { label: 'Rétros', icon: 'fa-rotate-left', color: '#6366f1' },
+  'review-strategy': { label: 'Portfolios', icon: 'fa-chart-line', color: '#eab308' },
 };
 
 const stats = {
@@ -39,30 +49,91 @@ const stats = {
     const now = new Date();
     return (now.getTime() - d.getTime()) < 7 * 24 * 60 * 60 * 1000;
   }).length,
+  thisMonth: allPosts.filter(p => {
+    const d = new Date(p.data.date);
+    const now = new Date();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length,
 };
+
+// Recent activity (last 5 posts for timeline)
+const recentActivity = allPosts.slice(0, 6);
+
+// Categories with posts for quick-access grid
+const activeCategories = collectionNames.filter(c => byCategory.has(c));
 ---
 <BaseLayout title="Tableau de bord">
-  <!-- Stats -->
-  <div class="metric-grid" style="margin-bottom:2rem;">
+  <!-- Hero section -->
+  <div class="hero-section animate-in">
+    <div class="hero-content">
+      <h1 class="hero-title">Tableau de bord</h1>
+      <p class="hero-subtitle">Vue d'ensemble de toutes les publications, veilles et suivis familiaux.</p>
+    </div>
+  </div>
+
+  <!-- Metric cards -->
+  <div class="metric-grid animate-in delay-1">
     <div class="metric-card">
+      <div class="metric-icon" style="color:var(--accent);"><i class="fa-solid fa-newspaper"></i></div>
       <div class="metric-value">{stats.total}</div>
       <div class="metric-label">Articles</div>
     </div>
     <div class="metric-card">
+      <div class="metric-icon" style="color:var(--purple);"><i class="fa-solid fa-layer-group"></i></div>
       <div class="metric-value">{stats.categories}</div>
       <div class="metric-label">Catégories</div>
     </div>
     <div class="metric-card">
+      <div class="metric-icon" style="color:var(--success);"><i class="fa-solid fa-bolt"></i></div>
       <div class="metric-value">{stats.thisWeek}</div>
       <div class="metric-label">Cette semaine</div>
     </div>
+    <div class="metric-card">
+      <div class="metric-icon" style="color:var(--warning);"><i class="fa-solid fa-calendar-check"></i></div>
+      <div class="metric-value">{stats.thisMonth}</div>
+      <div class="metric-label">Ce mois</div>
+    </div>
   </div>
 
-  <!-- Recent posts -->
-  {recentPosts.length > 0 ? (
-    <>
+  <!-- Category quick access -->
+  {activeCategories.length > 0 && (
+    <div class="animate-in delay-2" style="margin-bottom:2.5rem;">
+      <h2 class="section-title"><i class="fa-solid fa-grid-2"></i> Catégories</h2>
+      <div class="category-grid">
+        {activeCategories.map(catId => {
+          const meta = categoryMeta[catId];
+          const count = byCategory.get(catId)?.length || 0;
+          return (
+            <a href={`${base}${catId}/`} class="category-card">
+              <div class="category-card-icon" style={`background:${meta.color}20;color:${meta.color};`}>
+                <i class={`fa-solid ${meta.icon}`}></i>
+              </div>
+              <span>{meta.label}</span>
+              <span class="category-card-count">{count} article{count !== 1 ? 's' : ''}</span>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  )}
+
+  <!-- Featured + Recent posts -->
+  {allPosts.length > 0 ? (
+    <div class="animate-in delay-3">
       <h2 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Publications récentes</h2>
       <div class="post-grid">
+        {featuredPost && (
+          <PostCard
+            title={featuredPost.data.title}
+            date={featuredPost.data.date}
+            description={featuredPost.data.description}
+            category={featuredPost._collection}
+            tags={featuredPost.data.tags}
+            image={featuredPost.data.image}
+            href={`${base}${featuredPost._collection}/${featuredPost.id}/`}
+            featured={true}
+          />
+        )}
         {recentPosts.map(post => (
           <PostCard
             title={post.data.title}
@@ -75,12 +146,40 @@ const stats = {
           />
         ))}
       </div>
-    </>
+    </div>
   ) : (
     <div class="empty-state">
       <i class="fa-solid fa-feather-pointed"></i>
       <h3>Bienvenue sur MW Blog</h3>
       <p>Les articles seront publiés automatiquement par OpenClaw.</p>
+    </div>
+  )}
+
+  <!-- Recent Activity Timeline -->
+  {recentActivity.length > 0 && (
+    <div class="animate-in delay-4" style="margin-top:3rem;">
+      <h2 class="section-title"><i class="fa-solid fa-timeline"></i> Activité récente</h2>
+      <div class="timeline">
+        {recentActivity.map(post => {
+          const meta = categoryMeta[post._collection];
+          const d = new Date(post.data.date);
+          const timeAgo = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
+          const timeStr = timeAgo === 0 ? "Aujourd'hui" : timeAgo === 1 ? 'Hier' : `Il y a ${timeAgo}j`;
+          return (
+            <div class="timeline-item">
+              <div class="timeline-item-title">
+                <a href={`${base}${post._collection}/${post.id}/`}>{post.data.title}</a>
+              </div>
+              <div class="timeline-item-meta">
+                <span style={`color:${meta?.color || '#3b82f6'};`}>
+                  <i class={`fa-solid ${meta?.icon || 'fa-file'}`}></i> {meta?.label || post._collection}
+                </span>
+                <span>{timeStr}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   )}
 </BaseLayout>

@@ -7,9 +7,10 @@ interface Props {
   tags?: string[];
   image?: string;
   href: string;
+  featured?: boolean;
 }
 
-const { title, date, description, category, tags = [], image, href } = Astro.props;
+const { title, date, description, category, tags = [], image, href, featured = false } = Astro.props;
 
 const categoryColors: Record<string, string> = {
   family: 'var(--cat-family)', fatima: 'var(--cat-fatima)', yassine: 'var(--cat-yassine)',
@@ -42,9 +43,15 @@ const imgSrc = image || defaultImages[category] || defaultImages.business;
 const color = categoryColors[category] || 'var(--accent)';
 const label = categoryLabels[category] || category;
 const dateStr = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+
+// Estimate reading time (rough: assume ~200 words per post, description length as proxy)
+const readingTime = Math.max(2, Math.ceil((description?.length || 100) / 30));
 ---
-<article class="card animate-in">
-  <img src={imgSrc} alt={title} class="card-image" loading="lazy" />
+<article class={`card animate-in ${featured ? 'card-featured' : ''}`}>
+  <div class="card-image-wrapper">
+    <img src={imgSrc} alt={title} class="card-image" loading="lazy" />
+    <div class="card-image-overlay"></div>
+  </div>
   <div class="card-body">
     <div class="card-category" style={`color:${color}`}>
       <span class="cat-dot" style={`background:${color}`}></span>
@@ -54,7 +61,8 @@ const dateStr = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short
     {description && <p class="card-excerpt">{description}</p>}
     <div class="card-meta">
       <span><i class="fa-regular fa-calendar"></i> {dateStr}</span>
-      {tags.length > 0 && <span><i class="fa-solid fa-tags"></i> {tags.slice(0, 3).join(', ')}</span>}
+      <span class="card-reading-time"><i class="fa-regular fa-clock"></i> {readingTime} min</span>
+      {tags.length > 0 && <span><i class="fa-solid fa-tags"></i> {tags.slice(0, 2).join(', ')}</span>}
     </div>
   </div>
 </article>
