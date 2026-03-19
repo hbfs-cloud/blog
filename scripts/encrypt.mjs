@@ -24,7 +24,7 @@ console.log(`Encrypting ${htmlFiles.length} HTML files...`);
 // Pass all files as space-separated args
 const fileList = htmlFiles.map(f => `"${f}"`).join(" ");
 execSync(
-  `npx staticrypt ${fileList} -d "${DIST}" --short --password "${PASSWORD}" --template-color-primary "#0f172a" --template-color-secondary "#3b82f6" --template-title "MW Blog" --template-instructions "Entrez le mot de passe pour accéder au contenu." --template-button "Déverrouiller" --remember 30`,
+  `npx staticrypt ${fileList} -d "${DIST}" --short --password "${PASSWORD}" --template-color-primary "#0f172a" --template-color-secondary "#3b82f6" --template-title "Market Watch" --template-instructions "Entrez le mot de passe pour accéder au contenu." --template-button "Déverrouiller" --remember 30`,
   { stdio: "inherit", shell: true }
 );
 
