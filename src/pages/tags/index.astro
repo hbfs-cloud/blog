@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const base = import.meta.env.BASE_URL;
+const collectionNames = ['family','fatima','yassine','soufiane','youssouf','salma','veille','reputation','business','retrospectives','review-strategy'] as const;
+
+const tagCounts = new Map<string, number>();
+for (const name of collectionNames) {
+  try {
+    const posts = await getCollection(name, ({ data }: any) => !data.draft);
+    for (const post of posts) {
+      for (const tag of (post.data as any).tags || []) {
+        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+      }
+    }
+  } catch (e) {}
+}
+
+const sortedTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]);
+const maxCount = Math.max(...sortedTags.map(t => t[1]), 1);
+---
+<BaseLayout title="Tags">
+  <div class="category-header">
+    <h1><i class="fa-solid fa-tags"></i> Tags</h1>
+    <p>{sortedTags.length} tags, {[...tagCounts.values()].reduce((a, b) => a + b, 0)} articles</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-top:1.5rem;">
+    {sortedTags.map(([tag, count]) => {
+      const size = 0.75 + (count / maxCount) * 0.8;
+      const opacity = 0.5 + (count / maxCount) * 0.5;
+      return (
+        <a href={`${base}tags/${tag}/`} class="tag" style={`font-size:${size}rem;opacity:${opacity};padding:0.4rem 1rem;`}>
+          {tag} <span style="opacity:0.6;margin-left:4px;">({count})</span>
+        </a>
+      );
+    })}
+  </div>
+</BaseLayout>
