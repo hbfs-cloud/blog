@@ -21,8 +21,8 @@ const categoryColors: Record<string, string> = {
 
 const categoryLabels: Record<string, string> = {
   family: 'Famille', fatima: 'Fatima', yassine: 'Yassine', soufiane: 'Soufiane',
-  youssouf: 'Youssouf', salma: 'Salma', veille: 'Veille', reputation: 'R\u00e9putation',
-  business: 'Business', retrospectives: 'R\u00e9tros', 'review-strategy': 'Portfolios',
+  youssouf: 'Youssouf', salma: 'Salma', veille: 'Veille', reputation: 'Réputation',
+  business: 'Business', retrospectives: 'Rétros', 'review-strategy': 'Portfolios',
 };
 
 const calendarData: Record<string, any[]> = {};
@@ -74,7 +74,7 @@ const activeCats = [...new Set(allPosts.map(p => p._collection))];
       var current = new Date();
 
       var days = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
-      var months = ['Janvier','F\u00e9vrier','Mars','Avril','Mai','Juin','Juillet','Ao\u00fbt','Septembre','Octobre','Novembre','D\u00e9cembre'];
+      var months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 
       function render() {
         var year = current.getFullYear();

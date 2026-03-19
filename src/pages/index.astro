@@ -31,9 +31,9 @@ const categoryMeta: Record<string, { label: string; icon: string; color: string 
   youssouf: { label: "Youssouf", icon: "fa-futbol", color: "#f59e0b" },
   salma: { label: "Salma", icon: "fa-star", color: "#f472b6" },
   veille: { label: "Veille", icon: "fa-radar", color: "#14b8a6" },
-  reputation: { label: "R\u00e9putation", icon: "fa-shield-halved", color: "#f97316" },
+  reputation: { label: "Réputation", icon: "fa-shield-halved", color: "#f97316" },
   business: { label: "Business", icon: "fa-briefcase", color: "#0ea5e9" },
-  retrospectives: { label: "R\u00e9tros", icon: "fa-rotate-left", color: "#6366f1" },
+  retrospectives: { label: "Rétros", icon: "fa-rotate-left", color: "#6366f1" },
   "review-strategy": { label: "Portfolios", icon: "fa-chart-line", color: "#eab308" },
 };
 
@@ -76,7 +76,7 @@ const defaultImages: Record<string, string> = {
 function formatDateFR(dateStr: string) {
   const d = new Date(dateStr + "T00:00:00");
   const days = ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
-  const months = ["janvier","f\u00e9vrier","mars","avril","mai","juin","juillet","ao\u00fbt","septembre","octobre","novembre","d\u00e9cembre"];
+  const months = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
   return `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 ---
@@ -90,7 +90,7 @@ function formatDateFR(dateStr: string) {
     <div class="metric-card">
       <div class="metric-icon" style="color:var(--purple);"><i class="fa-solid fa-layer-group"></i></div>
       <div class="metric-value">{stats.categories}</div>
-      <div class="metric-label">Cat\u00e9gories</div>
+      <div class="metric-label">Catégories</div>
     </div>
     <div class="metric-card">
       <div class="metric-icon" style="color:var(--success);"><i class="fa-solid fa-bolt"></i></div>
@@ -106,7 +106,7 @@ function formatDateFR(dateStr: string) {
 
   {activeCategories.length > 0 && (
     <div class="animate-in delay-1" style="margin-bottom:2rem;">
-      <h2 class="section-title"><i class="fa-solid fa-grid-2"></i> Cat\u00e9gories</h2>
+      <h2 class="section-title"><i class="fa-solid fa-grid-2"></i> Catégories</h2>
       <div class="category-grid">
         {activeCategories.map(catId => {
           const meta = categoryMeta[catId];
@@ -172,7 +172,7 @@ function formatDateFR(dateStr: string) {
       <div class="empty-state">
         <i class="fa-solid fa-feather-pointed"></i>
         <h3>Bienvenue sur MW Blog</h3>
-        <p>Les articles seront publi\u00e9s automatiquement par OpenClaw.</p>
+        <p>Les articles seront publiés automatiquement par OpenClaw.</p>
       </div>
     )}
   </div>
