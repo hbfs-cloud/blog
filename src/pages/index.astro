@@ -1,0 +1,86 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+const base = import.meta.env.BASE_URL;
+const collectionNames = ['family','fatima','yassine','soufiane','youssouf','salma','veille','reputation','business','retrospectives','review-strategy'];
+
+let allPosts: any[] = [];
+for (const name of collectionNames) {
+  try {
+    const posts = await getCollection(name as any, ({ data }: any) => !data.draft);
+    allPosts.push(...posts.map((p: any) => ({ ...p, _collection: name })));
+  } catch (e) { /* empty collection */ }
+}
+
+allPosts.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
+const recentPosts = allPosts.slice(0, 12);
+
+// Group by category for section display
+const byCategory = new Map<string, any[]>();
+for (const post of allPosts) {
+  const cat = post._collection;
+  if (!byCategory.has(cat)) byCategory.set(cat, []);
+  byCategory.get(cat)!.push(post);
+}
+
+const categoryLabels: Record<string, string> = {
+  family: 'Famille', fatima: 'Fatima', yassine: 'Yassine', soufiane: 'Soufiane',
+  youssouf: 'Youssouf', salma: 'Salma', veille: 'Veille', reputation: 'Réputation',
+  business: 'Business', retrospectives: 'Rétros', 'review-strategy': 'Portfolios',
+};
+
+const stats = {
+  total: allPosts.length,
+  categories: byCategory.size,
+  thisWeek: allPosts.filter(p => {
+    const d = new Date(p.data.date);
+    const now = new Date();
+    return (now.getTime() - d.getTime()) < 7 * 24 * 60 * 60 * 1000;
+  }).length,
+};
+---
+<BaseLayout title="Tableau de bord">
+  <!-- Stats -->
+  <div class="metric-grid" style="margin-bottom:2rem;">
+    <div class="metric-card">
+      <div class="metric-value">{stats.total}</div>
+      <div class="metric-label">Articles</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{stats.categories}</div>
+      <div class="metric-label">Catégories</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">{stats.thisWeek}</div>
+      <div class="metric-label">Cette semaine</div>
+    </div>
+  </div>
+
+  <!-- Recent posts -->
+  {recentPosts.length > 0 ? (
+    <>
+      <h2 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Publications récentes</h2>
+      <div class="post-grid">
+        {recentPosts.map(post => (
+          <PostCard
+            title={post.data.title}
+            date={post.data.date}
+            description={post.data.description}
+            category={post._collection}
+            tags={post.data.tags}
+            image={post.data.image}
+            href={`${base}${post._collection}/${post.id}/`}
+          />
+        ))}
+      </div>
+    </>
+  ) : (
+    <div class="empty-state">
+      <i class="fa-solid fa-feather-pointed"></i>
+      <h3>Bienvenue sur MW Blog</h3>
+      <p>Les articles seront publiés automatiquement par OpenClaw.</p>
+    </div>
+  )}
+</BaseLayout>

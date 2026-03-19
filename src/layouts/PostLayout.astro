@@ -1,0 +1,59 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  date: Date;
+  category: string;
+  tags?: string[];
+  image?: string;
+  description?: string;
+}
+
+const { title, date, category, tags = [], image, description } = Astro.props;
+const base = import.meta.env.BASE_URL;
+
+const categoryColors: Record<string, string> = {
+  family: 'var(--cat-family)', fatima: 'var(--cat-fatima)', yassine: 'var(--cat-yassine)',
+  soufiane: 'var(--cat-soufiane)', youssouf: 'var(--cat-youssouf)', salma: 'var(--cat-salma)',
+  veille: 'var(--cat-veille)', reputation: 'var(--cat-reputation)', business: 'var(--cat-business)',
+  retrospectives: 'var(--cat-retrospectives)', 'review-strategy': 'var(--cat-review-strategy)',
+};
+
+const categoryLabels: Record<string, string> = {
+  family: 'Famille', fatima: 'Fatima', yassine: 'Yassine', soufiane: 'Soufiane',
+  youssouf: 'Youssouf', salma: 'Salma', veille: 'Veille', reputation: 'Réputation',
+  business: 'Business', retrospectives: 'Rétros', 'review-strategy': 'Portfolios',
+};
+
+const color = categoryColors[category] || 'var(--accent)';
+const label = categoryLabels[category] || category;
+const dateStr = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+---
+<BaseLayout title={title} description={description} activeCategory={category}>
+  <article>
+    <div class="post-header">
+      <div class="card-category" style={`color:${color}`}>
+        <span class="cat-dot" style={`background:${color}`}></span>
+        <a href={`${base}${category}/`} style={`color:${color}`}>{label}</a>
+      </div>
+      <h1>{title}</h1>
+      <div class="post-header-meta">
+        <span><i class="fa-regular fa-calendar"></i> {dateStr}</span>
+        {tags.length > 0 && (
+          <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+            {tags.map(tag => (
+              <a href={`${base}tags/${tag}/`} class="tag">{tag}</a>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+
+    {image && <img src={image} alt={title} class="post-hero" />}
+
+    <div class="post-content">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>

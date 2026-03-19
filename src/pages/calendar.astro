@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const base = import.meta.env.BASE_URL;
+const collectionNames = ['family','fatima','yassine','soufiane','youssouf','salma','veille','reputation','business','retrospectives','review-strategy'];
+
+let allPosts: any[] = [];
+for (const name of collectionNames) {
+  try {
+    const posts = await getCollection(name as any, ({ data }: any) => !data.draft);
+    allPosts.push(...posts.map((p: any) => ({ ...p, _collection: name })));
+  } catch (e) {}
+}
+
+const categoryColors: Record<string, string> = {
+  family: '#8b5cf6', fatima: '#ec4899', yassine: '#3b82f6', soufiane: '#22c55e',
+  youssouf: '#f59e0b', salma: '#f472b6', veille: '#14b8a6', reputation: '#f97316',
+  business: '#0ea5e9', retrospectives: '#6366f1', 'review-strategy': '#eab308',
+};
+
+// Build calendar data: { 'YYYY-MM-DD': [{title, category, href}] }
+const calendarData: Record<string, any[]> = {};
+for (const post of allPosts) {
+  const key = new Date(post.data.date).toISOString().slice(0, 10);
+  if (!calendarData[key]) calendarData[key] = [];
+  calendarData[key].push({
+    title: post.data.title,
+    category: post._collection,
+    color: categoryColors[post._collection] || '#3b82f6',
+    href: `${base}${post._collection}/${post.id}/`,
+  });
+}
+---
+<BaseLayout title="Calendrier">
+  <div class="category-header">
+    <h1><i class="fa-solid fa-calendar-days"></i> Calendrier</h1>
+    <p>Vue globale de toutes les publications</p>
+  </div>
+
+  <div id="calendar-app" data-posts={JSON.stringify(calendarData)} data-base={base}>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <button id="prevMonth" class="search-btn"><i class="fa-solid fa-chevron-left"></i></button>
+      <h2 id="monthTitle" style="font-size:1.1rem;font-weight:700;"></h2>
+      <button id="nextMonth" class="search-btn"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <div class="calendar-grid" id="calGrid"></div>
+    <div id="dayDetail" style="margin-top:1.5rem;display:none;"></div>
+  </div>
+
+  <script is:inline>
+    (function() {
+      const app = document.getElementById('calendar-app');
+      const posts = JSON.parse(app.dataset.posts);
+      const base = app.dataset.base;
+      let current = new Date();
+
+      const days = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+      const months = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+      function render() {
+        const year = current.getFullYear();
+        const month = current.getMonth();
+        document.getElementById('monthTitle').textContent = months[month] + ' ' + year;
+
+        const first = new Date(year, month, 1);
+        const last = new Date(year, month + 1, 0);
+        let startDay = first.getDay() - 1;
+        if (startDay < 0) startDay = 6;
+
+        const grid = document.getElementById('calGrid');
+        grid.innerHTML = days.map(d => '<div class="cal-header">' + d + '</div>').join('');
+
+        const today = new Date().toISOString().slice(0, 10);
+
+        for (let i = 0; i < startDay; i++) {
+          const d = new Date(year, month, -startDay + i + 1);
+          grid.innerHTML += '<div class="cal-day other-month">' + d.getDate() + '</div>';
+        }
+
+        for (let d = 1; d <= last.getDate(); d++) {
+          const key = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+          const dayPosts = posts[key] || [];
+          const isToday = key === today;
+          const cls = ['cal-day', isToday ? 'today' : '', dayPosts.length ? 'has-posts' : ''].filter(Boolean).join(' ');
+          let dots = dayPosts.slice(0, 4).map(p => '<span class="cal-dot" style="background:' + p.color + '"></span>').join('');
+          grid.innerHTML += '<div class="' + cls + '" data-date="' + key + '">' + d + (dots ? '<div class="cal-dots">' + dots + '</div>' : '') + '</div>';
+        }
+
+        grid.querySelectorAll('.has-posts').forEach(el => {
+          el.addEventListener('click', () => showDay(el.dataset.date));
+        });
+      }
+
+      function showDay(key) {
+        const detail = document.getElementById('dayDetail');
+        const dayPosts = posts[key] || [];
+        if (!dayPosts.length) { detail.style.display = 'none'; return; }
+        detail.style.display = 'block';
+        detail.innerHTML = '<h3 style="font-size:0.9rem;font-weight:700;margin-bottom:0.75rem;">' + key + '</h3>' +
+          dayPosts.map(p => '<a href="' + p.href + '" style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0.75rem;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;margin-bottom:0.5rem;color:var(--text-primary);font-size:0.85rem;"><span class="cat-dot" style="background:' + p.color + ';width:8px;height:8px;border-radius:50%;flex-shrink:0;"></span>' + p.title + '</a>').join('');
+      }
+
+      document.getElementById('prevMonth').addEventListener('click', () => { current.setMonth(current.getMonth() - 1); render(); });
+      document.getElementById('nextMonth').addEventListener('click', () => { current.setMonth(current.getMonth() + 1); render(); });
+      render();
+    })();
+  </script>
+</BaseLayout>

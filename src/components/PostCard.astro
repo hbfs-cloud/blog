@@ -1,0 +1,60 @@
+---
+interface Props {
+  title: string;
+  date: Date;
+  description?: string;
+  category: string;
+  tags?: string[];
+  image?: string;
+  href: string;
+}
+
+const { title, date, description, category, tags = [], image, href } = Astro.props;
+
+const categoryColors: Record<string, string> = {
+  family: 'var(--cat-family)', fatima: 'var(--cat-fatima)', yassine: 'var(--cat-yassine)',
+  soufiane: 'var(--cat-soufiane)', youssouf: 'var(--cat-youssouf)', salma: 'var(--cat-salma)',
+  veille: 'var(--cat-veille)', reputation: 'var(--cat-reputation)', business: 'var(--cat-business)',
+  retrospectives: 'var(--cat-retrospectives)', 'review-strategy': 'var(--cat-review-strategy)',
+};
+
+const categoryLabels: Record<string, string> = {
+  family: 'Famille', fatima: 'Fatima', yassine: 'Yassine', soufiane: 'Soufiane',
+  youssouf: 'Youssouf', salma: 'Salma', veille: 'Veille', reputation: 'Réputation',
+  business: 'Business', retrospectives: 'Rétros', 'review-strategy': 'Portfolios',
+};
+
+const defaultImages: Record<string, string> = {
+  family: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=680&h=400&fit=crop',
+  fatima: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=680&h=400&fit=crop',
+  yassine: 'https://images.unsplash.com/photo-1523050854058-8df90110c8f1?w=680&h=400&fit=crop',
+  soufiane: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=680&h=400&fit=crop',
+  youssouf: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=680&h=400&fit=crop',
+  salma: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=680&h=400&fit=crop',
+  veille: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=680&h=400&fit=crop',
+  reputation: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=680&h=400&fit=crop',
+  business: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=680&h=400&fit=crop',
+  retrospectives: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=680&h=400&fit=crop',
+  'review-strategy': 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=680&h=400&fit=crop',
+};
+
+const imgSrc = image || defaultImages[category] || defaultImages.business;
+const color = categoryColors[category] || 'var(--accent)';
+const label = categoryLabels[category] || category;
+const dateStr = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+---
+<article class="card animate-in">
+  <img src={imgSrc} alt={title} class="card-image" loading="lazy" />
+  <div class="card-body">
+    <div class="card-category" style={`color:${color}`}>
+      <span class="cat-dot" style={`background:${color}`}></span>
+      {label}
+    </div>
+    <h3 class="card-title"><a href={href}>{title}</a></h3>
+    {description && <p class="card-excerpt">{description}</p>}
+    <div class="card-meta">
+      <span><i class="fa-regular fa-calendar"></i> {dateStr}</span>
+      {tags.length > 0 && <span><i class="fa-solid fa-tags"></i> {tags.slice(0, 3).join(', ')}</span>}
+    </div>
+  </div>
+</article>

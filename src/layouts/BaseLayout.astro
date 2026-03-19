@@ -1,0 +1,123 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  activeCategory?: string;
+}
+
+const { title, description = 'Blog privé El Ouadi', activeCategory } = Astro.props;
+const base = import.meta.env.BASE_URL;
+
+const categories = [
+  { id: 'family', label: 'Famille', icon: 'fa-users', color: 'var(--cat-family)' },
+  { id: 'fatima', label: 'Fatima', icon: 'fa-heart', color: 'var(--cat-fatima)' },
+  { id: 'yassine', label: 'Yassine', icon: 'fa-graduation-cap', color: 'var(--cat-yassine)' },
+  { id: 'soufiane', label: 'Soufiane', icon: 'fa-flask', color: 'var(--cat-soufiane)' },
+  { id: 'youssouf', label: 'Youssouf', icon: 'fa-futbol', color: 'var(--cat-youssouf)' },
+  { id: 'salma', label: 'Salma', icon: 'fa-star', color: 'var(--cat-salma)' },
+  { id: 'veille', label: 'Veille', icon: 'fa-radar', color: 'var(--cat-veille)' },
+  { id: 'reputation', label: 'Réputation', icon: 'fa-shield-halved', color: 'var(--cat-reputation)' },
+  { id: 'business', label: 'Business', icon: 'fa-briefcase', color: 'var(--cat-business)' },
+  { id: 'retrospectives', label: 'Rétros', icon: 'fa-rotate-left', color: 'var(--cat-retrospectives)' },
+  { id: 'review-strategy', label: 'Portfolios', icon: 'fa-chart-line', color: 'var(--cat-review-strategy)' },
+];
+
+const familySection = categories.filter(c => ['family','fatima','yassine','soufiane','youssouf','salma'].includes(c.id));
+const workSection = categories.filter(c => ['veille','reputation','business','retrospectives','review-strategy'].includes(c.id));
+---
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title} — MW Blog</title>
+  <meta name="description" content={description} />
+  <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h1><i class="fa-solid fa-chart-pie"></i> MW Blog</h1>
+        <p>Journal privé & veille</p>
+      </div>
+
+      <nav class="sidebar-section">
+        <div class="sidebar-section-title">Navigation</div>
+        <a href={`${base}`} class={`sidebar-link ${!activeCategory ? 'active' : ''}`}>
+          <i class="fa-solid fa-house" style="width:16px;text-align:center;"></i> Accueil
+        </a>
+        <a href={`${base}calendar/`} class="sidebar-link">
+          <i class="fa-solid fa-calendar-days" style="width:16px;text-align:center;"></i> Calendrier
+        </a>
+      </nav>
+
+      <nav class="sidebar-section">
+        <div class="sidebar-section-title">Famille</div>
+        {familySection.map(cat => (
+          <a href={`${base}${cat.id}/`} class={`sidebar-link ${activeCategory === cat.id ? 'active' : ''}`}>
+            <span class="cat-dot" style={`background:${cat.color}`}></span>
+            {cat.label}
+          </a>
+        ))}
+      </nav>
+
+      <nav class="sidebar-section">
+        <div class="sidebar-section-title">Travail</div>
+        {workSection.map(cat => (
+          <a href={`${base}${cat.id}/`} class={`sidebar-link ${activeCategory === cat.id ? 'active' : ''}`}>
+            <span class="cat-dot" style={`background:${cat.color}`}></span>
+            {cat.label}
+          </a>
+        ))}
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-bar">
+        <button class="mobile-toggle" id="menuToggle" aria-label="Menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+        <span class="top-bar-title">{title}</span>
+        <button class="search-btn" id="searchBtn">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          Rechercher
+          <kbd>⌘K</kbd>
+        </button>
+      </header>
+
+      <div class="content-area">
+        <slot />
+      </div>
+
+      <footer class="footer">
+        <p>&copy; {new Date().getFullYear()} El Ouadi — Journal privé</p>
+      </footer>
+    </main>
+  </div>
+
+  <script is:inline>
+    // Mobile sidebar toggle
+    const toggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    if (toggle && sidebar) {
+      toggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+      document.addEventListener('click', (e) => {
+        if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== toggle) {
+          sidebar.classList.remove('open');
+        }
+      });
+    }
+    // Cmd+K search
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        // TODO: open search modal
+      }
+    });
+  </script>
+</body>
+</html>

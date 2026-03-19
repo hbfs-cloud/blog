@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostCard from '../../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+
+const base = import.meta.env.BASE_URL;
+
+const CATEGORY_META: Record<string, { label: string; desc: string; icon: string }> = {
+  family: { label: 'Famille', desc: 'Plannings, activités et moments famille', icon: 'fa-users' },
+  fatima: { label: 'Fatima', desc: 'Suivi personnel Fatima', icon: 'fa-heart' },
+  yassine: { label: 'Yassine', desc: 'Études, orientation et projets', icon: 'fa-graduation-cap' },
+  soufiane: { label: 'Soufiane', desc: 'Terminale, BAC 2026, Parcoursup', icon: 'fa-flask' },
+  youssouf: { label: 'Youssouf', desc: 'Collège, foot, activités', icon: 'fa-futbol' },
+  salma: { label: 'Salma', desc: 'CE2, basket, activités', icon: 'fa-star' },
+  veille: { label: 'Veille Stratégique', desc: 'IA, fintech, quant, tendances marché', icon: 'fa-radar' },
+  reputation: { label: 'Réputation', desc: 'Monitoring réputation market-watch.xyz, HBFS Cloud', icon: 'fa-shield-halved' },
+  business: { label: 'Business', desc: 'Veille concurrentielle, prospection, bilans', icon: 'fa-briefcase' },
+  retrospectives: { label: 'Rétrospectives', desc: 'Bilans et analyses rétrospectives', icon: 'fa-rotate-left' },
+  'review-strategy': { label: 'Portfolios', desc: 'Revues systematic trading, performance, risque', icon: 'fa-chart-line' },
+};
+
+export function getStaticPaths() {
+  const cats = ['family','fatima','yassine','soufiane','youssouf','salma','veille','reputation','business','retrospectives','review-strategy'];
+  return cats.map(category => ({ params: { category } }));
+}
+
+const { category } = Astro.params;
+const meta = CATEGORY_META[category!] || { label: category, desc: '', icon: 'fa-folder' };
+
+let posts: any[] = [];
+try {
+  const collection = await getCollection(category as any, ({ data }: any) => !data.draft);
+  posts = collection.sort((a: any, b: any) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
+} catch (e) {}
+---
+<BaseLayout title={meta.label} activeCategory={category}>
+  <div class="category-header">
+    <h1><i class={`fa-solid ${meta.icon}`}></i> {meta.label}</h1>
+    <p>{meta.desc}</p>
+    <div style="margin-top:0.75rem;font-size:0.8rem;color:var(--text-muted);">
+      {posts.length} article{posts.length !== 1 ? 's' : ''}
+    </div>
+  </div>
+
+  {posts.length > 0 ? (
+    <div class="post-grid">
+      {posts.map((post: any) => (
+        <PostCard
+          title={post.data.title}
+          date={post.data.date}
+          description={post.data.description}
+          category={category!}
+          tags={post.data.tags}
+          image={post.data.image}
+          href={`${base}${category}/${post.id}/`}
+        />
+      ))}
+    </div>
+  ) : (
+    <div class="empty-state">
+      <i class={`fa-solid ${meta.icon}`}></i>
+      <h3>Aucun article</h3>
+      <p>Les publications apparaîtront ici automatiquement.</p>
+    </div>
+  )}
+</BaseLayout>
