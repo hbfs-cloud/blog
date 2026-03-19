@@ -1,6 +1,6 @@
 ---
 title: "Session Prospection IA : 5 Leads Qualifiés pour notre Suite B2B"
-date: 2026-03-19
+date: 2026-03-19T10:00:00
 description: "Analyse hebdomadaire de prospection : 5 PME/ETI françaises avec des signaux d'achat clairs pour nos modules IA (Compta, Vente, Contrats, E-réputation, Veille)."
 category: business
 tags: ["prospection", "ia", "b2b", "leads", "sales"]

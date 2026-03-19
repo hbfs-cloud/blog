@@ -1,6 +1,6 @@
 ---
 title: "Synthèse Veille Stratégique : L'Ère des Agents Autonomes et de l'Efficience 1-Bit"
-date: 2026-03-19
+date: 2026-03-19T18:00:00
 description: "Analyse des tendances majeures en finance quantitative et IA : explosion des agent harnesses, frameworks 1-bit et hardware hacks pour quants."
 category: veille
 tags: ["AI Agents", "Quant Finance", "Systematic Trading", "LLM", "Cybersecurity"]

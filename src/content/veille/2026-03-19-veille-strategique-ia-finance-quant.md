@@ -1,6 +1,6 @@
 ---
 title: "Veille Stratégique Mars 2026 : L'Ère des Pre-trained Market Models et de l'IA Agentique"
-date: 2026-03-19
+date: 2026-03-19T18:00:00
 description: "Analyse des tendances majeures en systematic trading, IA pour la finance et outils open-source pour la semaine du 19 mars 2026."
 category: veille
 tags: ["ia", "quant", "systematic-trading", "veille", "mamba", "fintech"]
