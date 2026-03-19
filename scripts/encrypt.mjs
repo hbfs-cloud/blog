@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { readdirSync, statSync, readFileSync, writeFileSync, existsSync, rmSync } from "fs";
+import { readdirSync, statSync } from "fs";
 import { join } from "path";
 
 const DIST = "dist";
@@ -21,11 +21,12 @@ function findHtml(dir) {
 const htmlFiles = findHtml(DIST);
 console.log(`Encrypting ${htmlFiles.length} HTML files...`);
 
-// Pass all files as space-separated args
 const fileList = htmlFiles.map(f => `"${f}"`).join(" ");
+
+// Pass password via STATICRYPT_PASSWORD env var to avoid shell escaping issues
 execSync(
-  `npx staticrypt ${fileList} -d "${DIST}" --short --password "${PASSWORD}" --template-color-primary "#0f172a" --template-color-secondary "#3b82f6" --template-title "Market Watch" --template-instructions "Entrez le mot de passe pour accéder au contenu." --template-button "Déverrouiller" --remember 30`,
-  { stdio: "inherit", shell: true }
+  `npx staticrypt ${fileList} -d "${DIST}" --short --template-color-primary "#0f172a" --template-color-secondary "#3b82f6" --template-title "Market Watch" --template-instructions "Entrez le mot de passe pour accéder au contenu." --template-button "Déverrouiller" --remember 30`,
+  { stdio: "inherit", shell: true, env: { ...process.env, STATICRYPT_PASSWORD: PASSWORD } }
 );
 
 console.log(`Done! ${htmlFiles.length} files encrypted.`);
