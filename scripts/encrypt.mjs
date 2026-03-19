@@ -3,7 +3,11 @@ import { readdirSync, statSync } from "fs";
 import { join } from "path";
 
 const DIST = "dist";
-const PASSWORD = process.env.STATICRYPT_PASSWORD || "tss!##123";
+const PASSWORD = process.env.STATICRYPT_PASSWORD;
+if (!PASSWORD) {
+  console.error("ERROR: STATICRYPT_PASSWORD env var is required");
+  process.exit(1);
+}
 
 function findHtml(dir) {
   const files = [];
