@@ -1,25 +1,21 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import PostCard from '../components/PostCard.astro';
-import { getCollection } from 'astro:content';
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PostCard from "../components/PostCard.astro";
+import { getCollection } from "astro:content";
 
 const base = import.meta.env.BASE_URL;
-const collectionNames = ['family','fatima','yassine','soufiane','youssouf','salma','veille','reputation','business','retrospectives','review-strategy'];
+const collectionNames = ["family","fatima","yassine","soufiane","youssouf","salma","veille","reputation","business","retrospectives","review-strategy"];
 
 let allPosts: any[] = [];
 for (const name of collectionNames) {
   try {
     const posts = await getCollection(name as any, ({ data }: any) => !data.draft);
     allPosts.push(...posts.map((p: any) => ({ ...p, _collection: name })));
-  } catch (e) { /* empty collection */ }
+  } catch (e) {}
 }
 
 allPosts.sort((a, b) => new Date(b.data.date).getTime() - new Date(a.data.date).getTime());
 
-const featuredPost = allPosts[0];
-const recentPosts = allPosts.slice(1, 13);
-
-// Group by category for counts and sections
 const byCategory = new Map<string, any[]>();
 for (const post of allPosts) {
   const cat = post._collection;
@@ -28,17 +24,17 @@ for (const post of allPosts) {
 }
 
 const categoryMeta: Record<string, { label: string; icon: string; color: string }> = {
-  family: { label: 'Famille', icon: 'fa-users', color: '#8b5cf6' },
-  fatima: { label: 'Fatima', icon: 'fa-heart', color: '#ec4899' },
-  yassine: { label: 'Yassine', icon: 'fa-graduation-cap', color: '#3b82f6' },
-  soufiane: { label: 'Soufiane', icon: 'fa-flask', color: '#22c55e' },
-  youssouf: { label: 'Youssouf', icon: 'fa-futbol', color: '#f59e0b' },
-  salma: { label: 'Salma', icon: 'fa-star', color: '#f472b6' },
-  veille: { label: 'Veille', icon: 'fa-radar', color: '#14b8a6' },
-  reputation: { label: 'Réputation', icon: 'fa-shield-halved', color: '#f97316' },
-  business: { label: 'Business', icon: 'fa-briefcase', color: '#0ea5e9' },
-  retrospectives: { label: 'Rétros', icon: 'fa-rotate-left', color: '#6366f1' },
-  'review-strategy': { label: 'Portfolios', icon: 'fa-chart-line', color: '#eab308' },
+  family: { label: "Famille", icon: "fa-users", color: "#8b5cf6" },
+  fatima: { label: "Fatima", icon: "fa-heart", color: "#ec4899" },
+  yassine: { label: "Yassine", icon: "fa-graduation-cap", color: "#3b82f6" },
+  soufiane: { label: "Soufiane", icon: "fa-flask", color: "#22c55e" },
+  youssouf: { label: "Youssouf", icon: "fa-futbol", color: "#f59e0b" },
+  salma: { label: "Salma", icon: "fa-star", color: "#f472b6" },
+  veille: { label: "Veille", icon: "fa-radar", color: "#14b8a6" },
+  reputation: { label: "R\u00e9putation", icon: "fa-shield-halved", color: "#f97316" },
+  business: { label: "Business", icon: "fa-briefcase", color: "#0ea5e9" },
+  retrospectives: { label: "R\u00e9tros", icon: "fa-rotate-left", color: "#6366f1" },
+  "review-strategy": { label: "Portfolios", icon: "fa-chart-line", color: "#eab308" },
 };
 
 const stats = {
@@ -46,8 +42,7 @@ const stats = {
   categories: byCategory.size,
   thisWeek: allPosts.filter(p => {
     const d = new Date(p.data.date);
-    const now = new Date();
-    return (now.getTime() - d.getTime()) < 7 * 24 * 60 * 60 * 1000;
+    return (Date.now() - d.getTime()) < 7 * 24 * 60 * 60 * 1000;
   }).length,
   thisMonth: allPosts.filter(p => {
     const d = new Date(p.data.date);
@@ -56,23 +51,34 @@ const stats = {
   }).length,
 };
 
-// Recent activity (last 5 posts for timeline)
-const recentActivity = allPosts.slice(0, 6);
-
-// Categories with posts for quick-access grid
 const activeCategories = collectionNames.filter(c => byCategory.has(c));
+
+// Group ALL posts by date
+const byDate = new Map<string, any[]>();
+for (const post of allPosts) {
+  const key = new Date(post.data.date).toISOString().slice(0, 10);
+  if (!byDate.has(key)) byDate.set(key, []);
+  byDate.get(key)!.push(post);
+}
+const sortedDates = [...byDate.keys()].sort((a, b) => b.localeCompare(a));
+
+const postsJson = JSON.stringify(sortedDates.map(date => ({
+  date,
+  posts: byDate.get(date)!.map(p => ({
+    title: p.data.title,
+    description: p.data.description || "",
+    category: p._collection,
+    tags: p.data.tags || [],
+    image: p.data.image || "",
+    href: `${base}${p._collection}/${p.id}/`,
+    catLabel: categoryMeta[p._collection]?.label || p._collection,
+    catColor: categoryMeta[p._collection]?.color || "#3b82f6",
+    catIcon: categoryMeta[p._collection]?.icon || "fa-file",
+  }))
+})));
 ---
 <BaseLayout title="Tableau de bord">
-  <!-- Hero section -->
-  <div class="hero-section animate-in">
-    <div class="hero-content">
-      <h1 class="hero-title">Tableau de bord</h1>
-      <p class="hero-subtitle">Vue d'ensemble de toutes les publications, veilles et suivis familiaux.</p>
-    </div>
-  </div>
-
-  <!-- Metric cards -->
-  <div class="metric-grid animate-in delay-1">
+  <div class="metric-grid animate-in">
     <div class="metric-card">
       <div class="metric-icon" style="color:var(--accent);"><i class="fa-solid fa-newspaper"></i></div>
       <div class="metric-value">{stats.total}</div>
@@ -81,7 +87,7 @@ const activeCategories = collectionNames.filter(c => byCategory.has(c));
     <div class="metric-card">
       <div class="metric-icon" style="color:var(--purple);"><i class="fa-solid fa-layer-group"></i></div>
       <div class="metric-value">{stats.categories}</div>
-      <div class="metric-label">Catégories</div>
+      <div class="metric-label">Cat\u00e9gories</div>
     </div>
     <div class="metric-card">
       <div class="metric-icon" style="color:var(--success);"><i class="fa-solid fa-bolt"></i></div>
@@ -95,10 +101,9 @@ const activeCategories = collectionNames.filter(c => byCategory.has(c));
     </div>
   </div>
 
-  <!-- Category quick access -->
   {activeCategories.length > 0 && (
-    <div class="animate-in delay-2" style="margin-bottom:2.5rem;">
-      <h2 class="section-title"><i class="fa-solid fa-grid-2"></i> Catégories</h2>
+    <div class="animate-in delay-1" style="margin-bottom:2rem;">
+      <h2 class="section-title"><i class="fa-solid fa-grid-2"></i> Cat\u00e9gories</h2>
       <div class="category-grid">
         {activeCategories.map(catId => {
           const meta = categoryMeta[catId];
@@ -109,7 +114,7 @@ const activeCategories = collectionNames.filter(c => byCategory.has(c));
                 <i class={`fa-solid ${meta.icon}`}></i>
               </div>
               <span>{meta.label}</span>
-              <span class="category-card-count">{count} article{count !== 1 ? 's' : ''}</span>
+              <span class="category-card-count">{count}</span>
             </a>
           );
         })}
@@ -117,69 +122,106 @@ const activeCategories = collectionNames.filter(c => byCategory.has(c));
     </div>
   )}
 
-  <!-- Featured + Recent posts -->
-  {allPosts.length > 0 ? (
-    <div class="animate-in delay-3">
-      <h2 class="section-title"><i class="fa-solid fa-clock-rotate-left"></i> Publications récentes</h2>
-      <div class="post-grid">
-        {featuredPost && (
-          <PostCard
-            title={featuredPost.data.title}
-            date={featuredPost.data.date}
-            description={featuredPost.data.description}
-            category={featuredPost._collection}
-            tags={featuredPost.data.tags}
-            image={featuredPost.data.image}
-            href={`${base}${featuredPost._collection}/${featuredPost.id}/`}
-            featured={true}
-          />
-        )}
-        {recentPosts.map(post => (
-          <PostCard
-            title={post.data.title}
-            date={post.data.date}
-            description={post.data.description}
-            category={post._collection}
-            tags={post.data.tags}
-            image={post.data.image}
-            href={`${base}${post._collection}/${post.id}/`}
-          />
-        ))}
+  <div class="animate-in delay-2">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:0.75rem;">
+      <h2 class="section-title" style="margin:0;"><i class="fa-solid fa-clock-rotate-left"></i> Journal</h2>
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <button id="prevDay" class="day-nav-btn" title="Jour pr\u00e9c\u00e9dent"><i class="fa-solid fa-chevron-left"></i></button>
+        <span id="dayLabel" style="font-weight:700;font-size:0.9rem;min-width:200px;text-align:center;"></span>
+        <button id="nextDay" class="day-nav-btn" title="Jour suivant"><i class="fa-solid fa-chevron-right"></i></button>
+        <button id="todayBtn" class="day-nav-btn" style="margin-left:0.5rem;font-size:0.75rem;padding:0.4rem 0.75rem;">Aujourd&#39;hui</button>
       </div>
     </div>
-  ) : (
-    <div class="empty-state">
-      <i class="fa-solid fa-feather-pointed"></i>
-      <h3>Bienvenue sur MW Blog</h3>
-      <p>Les articles seront publiés automatiquement par OpenClaw.</p>
-    </div>
-  )}
 
-  <!-- Recent Activity Timeline -->
-  {recentActivity.length > 0 && (
-    <div class="animate-in delay-4" style="margin-top:3rem;">
-      <h2 class="section-title"><i class="fa-solid fa-timeline"></i> Activité récente</h2>
-      <div class="timeline">
-        {recentActivity.map(post => {
-          const meta = categoryMeta[post._collection];
-          const d = new Date(post.data.date);
-          const timeAgo = Math.floor((Date.now() - d.getTime()) / (1000 * 60 * 60 * 24));
-          const timeStr = timeAgo === 0 ? "Aujourd'hui" : timeAgo === 1 ? 'Hier' : `Il y a ${timeAgo}j`;
-          return (
-            <div class="timeline-item">
-              <div class="timeline-item-title">
-                <a href={`${base}${post._collection}/${post.id}/`}>{post.data.title}</a>
-              </div>
-              <div class="timeline-item-meta">
-                <span style={`color:${meta?.color || '#3b82f6'};`}>
-                  <i class={`fa-solid ${meta?.icon || 'fa-file'}`}></i> {meta?.label || post._collection}
-                </span>
-                <span>{timeStr}</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+    <div id="dayFeed"></div>
+
+    <div id="emptyDay" style="display:none;text-align:center;padding:3rem 1rem;color:var(--text-muted);">
+      <i class="fa-regular fa-calendar-xmark" style="font-size:2rem;margin-bottom:0.75rem;display:block;"></i>
+      <p>Aucune publication ce jour</p>
     </div>
-  )}
+  </div>
+
+  <script is:inline define:vars={{ postsJson }}>
+    (function() {
+      var allDays = JSON.parse(postsJson);
+      var currentIdx = 0;
+
+      var defaultImages = {
+        family: "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=680&h=400&fit=crop",
+        fatima: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=680&h=400&fit=crop",
+        yassine: "https://images.unsplash.com/photo-1523050854058-8df90110c8f1?w=680&h=400&fit=crop",
+        soufiane: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=680&h=400&fit=crop",
+        youssouf: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=680&h=400&fit=crop",
+        salma: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=680&h=400&fit=crop",
+        veille: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=680&h=400&fit=crop",
+        reputation: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=680&h=400&fit=crop",
+        business: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=680&h=400&fit=crop",
+        retrospectives: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=680&h=400&fit=crop",
+        "review-strategy": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=680&h=400&fit=crop"
+      };
+
+      function formatDate(dateStr) {
+        var d = new Date(dateStr + "T00:00:00");
+        return d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+      }
+
+      function renderDay() {
+        var feed = document.getElementById("dayFeed");
+        var empty = document.getElementById("emptyDay");
+        var label = document.getElementById("dayLabel");
+        var nextBtn = document.getElementById("nextDay");
+        var prevBtn = document.getElementById("prevDay");
+
+        if (!allDays.length) {
+          label.textContent = "Aucun article";
+          feed.innerHTML = "";
+          empty.style.display = "block";
+          return;
+        }
+
+        var day = allDays[currentIdx];
+        label.textContent = formatDate(day.date);
+        nextBtn.disabled = currentIdx <= 0;
+        prevBtn.disabled = currentIdx >= allDays.length - 1;
+
+        if (!day.posts.length) {
+          feed.innerHTML = "";
+          empty.style.display = "block";
+          return;
+        }
+
+        empty.style.display = "none";
+        feed.innerHTML = day.posts.map(function(p) {
+          var img = p.image || defaultImages[p.category] || defaultImages.business;
+          var tags = (p.tags || []).slice(0, 3).map(function(t) {
+            return '<span style="font-size:0.65rem;background:var(--bg-surface);padding:0.15rem 0.5rem;border-radius:99px;color:var(--text-secondary);">' + t + '</span>';
+          }).join("");
+          return '<a href="' + p.href + '" class="feed-card">' +
+            '<div class="feed-card-img"><img src="' + img + '" alt="" loading="lazy" /></div>' +
+            '<div class="feed-card-body">' +
+              '<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.35rem;">' +
+                '<span class="cat-dot" style="background:' + p.catColor + ';"></span>' +
+                '<span style="font-size:0.7rem;font-weight:600;color:' + p.catColor + ';">' + p.catLabel + '</span>' +
+              '</div>' +
+              '<h3 style="font-size:1rem;font-weight:700;margin:0 0 0.3rem;line-height:1.3;">' + p.title + '</h3>' +
+              (p.description ? '<p style="font-size:0.8rem;color:var(--text-secondary);margin:0 0 0.4rem;line-height:1.4;">' + p.description.slice(0, 150) + (p.description.length > 150 ? "..." : "") + '</p>' : '') +
+              (tags ? '<div style="display:flex;gap:0.3rem;flex-wrap:wrap;">' + tags + '</div>' : '') +
+            '</div>' +
+          '</a>';
+        }).join("");
+      }
+
+      document.getElementById("prevDay").addEventListener("click", function() {
+        if (currentIdx < allDays.length - 1) { currentIdx++; renderDay(); }
+      });
+      document.getElementById("nextDay").addEventListener("click", function() {
+        if (currentIdx > 0) { currentIdx--; renderDay(); }
+      });
+      document.getElementById("todayBtn").addEventListener("click", function() {
+        currentIdx = 0; renderDay();
+      });
+
+      renderDay();
+    })();
+  </script>
 </BaseLayout>
