@@ -9,6 +9,7 @@ interface Props {
 
 const { title, description = 'Blog privé El Ouadi', activeCategory } = Astro.props;
 const base = import.meta.env.BASE_URL;
+const currentPath = Astro.url.pathname;
 
 const categories = [
   { id: 'family', label: 'Famille', icon: 'fa-users', color: 'var(--cat-family)' },
@@ -52,10 +53,10 @@ const workSection = categories.filter(c => ['veille','reputation','business','re
 
       <nav class="sidebar-section">
         <div class="sidebar-section-title">Navigation</div>
-        <a href={`${base}`} class={`sidebar-link ${!activeCategory ? 'active' : ''}`}>
+        <a href={`${base}`} class={`sidebar-link ${currentPath === base || currentPath === '/' ? 'active' : ''}`}>
           <i class="fa-solid fa-house" style="width:16px;text-align:center;"></i> Accueil
         </a>
-        <a href={`${base}calendar/`} class="sidebar-link">
+        <a href={`${base}calendar/`} class={`sidebar-link ${currentPath.startsWith(base + 'calendar') ? 'active' : ''}`}>
           <i class="fa-solid fa-calendar-days" style="width:16px;text-align:center;"></i> Calendrier
         </a>
       </nav>
