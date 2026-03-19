@@ -3,7 +3,7 @@ import { readdirSync, statSync, readFileSync, writeFileSync, existsSync, rmSync 
 import { join } from "path";
 
 const DIST = "dist";
-const PASSWORD = process.env.STATICRYPT_PASSWORD || "tss93!##123";
+const PASSWORD = process.env.STATICRYPT_PASSWORD || "tss!##123";
 
 function findHtml(dir) {
   const files = [];
