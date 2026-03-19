@@ -25,7 +25,6 @@ const categoryLabels: Record<string, string> = {
   business: 'Business', retrospectives: 'R\u00e9tros', 'review-strategy': 'Portfolios',
 };
 
-// Published articles data
 const calendarData: Record<string, any[]> = {};
 for (const post of allPosts) {
   const key = new Date(post.data.date).toISOString().slice(0, 10);
@@ -36,72 +35,7 @@ for (const post of allPosts) {
     color: categoryColors[post._collection] || '#3b82f6',
     label: categoryLabels[post._collection] || post._collection,
     href: `${base}${post._collection}/${post.id}/`,
-    type: 'article',
   });
-}
-
-// Recurring scheduled events (from OpenClaw crons) — shown as upcoming
-const scheduledEvents = [
-  { name: 'Daily Briefing', cron: 'daily', category: 'veille', weekdays: [0,1,2,3,4,5,6] },
-  { name: 'Scanner Quotidien', cron: 'weekdays', category: 'retrospectives', weekdays: [1,2,3,4,5] },
-  { name: 'Veille Strat\u00e9gique', cron: 'weekdays', category: 'veille', weekdays: [1,2,3,4,5] },
-  { name: 'Veille YouTube', cron: 'biweekly', category: 'veille', weekdays: [2,5] },
-  { name: 'Kickoff Business', cron: 'weekly', category: 'business', weekdays: [1] },
-  { name: 'Veille Business', cron: 'weekly', category: 'business', weekdays: [1] },
-  { name: 'Veille Concurrentielle', cron: 'weekly', category: 'business', weekdays: [3] },
-  { name: 'Prospection Leads', cron: 'weekly', category: 'business', weekdays: [4] },
-  { name: 'Bilan Semaine', cron: 'weekly', category: 'business', weekdays: [5] },
-  { name: 'Rapport R\u00e9putation', cron: 'weekly', category: 'reputation', weekdays: [1] },
-  { name: 'Monitoring Domaines', cron: 'weekly', category: 'reputation', weekdays: [1] },
-  { name: 'Revue Portfolios', cron: 'weekly', category: 'review-strategy', weekdays: [1] },
-  { name: 'Check Mid-week Portfolios', cron: 'weekly', category: 'review-strategy', weekdays: [3] },
-  { name: 'Plan Weekend', cron: 'weekly', category: 'family', weekdays: [5] },
-  { name: 'Briefing Semaine', cron: 'weekly', category: 'family', weekdays: [0] },
-  { name: 'Activit\u00e9 Enrichissante', cron: 'weekly', category: 'family', weekdays: [3] },
-  { name: 'Weekly Analysis', cron: 'weekly', category: 'veille', weekdays: [0] },
-  { name: 'R\u00e9trospective Scanner', cron: 'weekly', category: 'retrospectives', weekdays: [5] },
-  { name: 'Audit Syst\u00e8me', cron: 'weekly', category: 'veille', weekdays: [0] },
-];
-
-// Generate scheduled events for current and next month
-function generateScheduledDates() {
-  const now = new Date();
-  const events: Record<string, any[]> = {};
-  // Generate for 60 days ahead
-  for (let offset = 0; offset < 60; offset++) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
-    const key = d.toISOString().slice(0, 10);
-    const dow = d.getDay();
-    for (const evt of scheduledEvents) {
-      if (evt.weekdays.includes(dow)) {
-        if (!events[key]) events[key] = [];
-        events[key].push({
-          title: evt.name,
-          category: evt.category,
-          color: categoryColors[evt.category] || '#3b82f6',
-          label: categoryLabels[evt.category] || evt.category,
-          href: '',
-          type: 'scheduled',
-        });
-      }
-    }
-  }
-  return events;
-}
-
-const scheduledData = generateScheduledDates();
-
-// Merge published + scheduled
-const mergedData: Record<string, any[]> = { ...calendarData };
-for (const [key, events] of Object.entries(scheduledData)) {
-  if (!mergedData[key]) mergedData[key] = [];
-  // Only add scheduled events that don't overlap with published articles of same category
-  const publishedCats = new Set((mergedData[key] || []).filter((e: any) => e.type === 'article').map((e: any) => e.category));
-  for (const evt of events) {
-    if (!publishedCats.has(evt.category)) {
-      mergedData[key].push(evt);
-    }
-  }
 }
 
 const activeCats = [...new Set(allPosts.map(p => p._collection))];
@@ -109,19 +43,10 @@ const activeCats = [...new Set(allPosts.map(p => p._collection))];
 <BaseLayout title="Calendrier">
   <div class="category-header animate-in">
     <h1><i class="fa-solid fa-calendar-days"></i> Calendrier</h1>
-    <p>Publications et \u00e9v\u00e9nements planifi\u00e9s</p>
+    <p>Publications par date</p>
   </div>
 
-  <div style="display:flex;gap:0.5rem;margin-bottom:1.25rem;flex-wrap:wrap;" class="animate-in">
-    <span style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.75rem;color:var(--text-secondary);padding:0.3rem 0.7rem;background:var(--bg-card);border:1px solid var(--border);border-radius:99px;">
-      <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;"></span> Publi\u00e9
-    </span>
-    <span style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.75rem;color:var(--text-secondary);padding:0.3rem 0.7rem;background:var(--bg-card);border:1px dashed var(--border);border-radius:99px;">
-      <span style="width:8px;height:8px;border-radius:50%;border:2px dashed var(--text-muted);display:inline-block;"></span> Planifi\u00e9
-    </span>
-  </div>
-
-  <div id="calendar-app" class="animate-in delay-1" data-posts={JSON.stringify(mergedData)} data-base={base}>
+  <div id="calendar-app" class="animate-in delay-1" data-posts={JSON.stringify(calendarData)} data-base={base}>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
       <button id="prevMonth" class="day-nav-btn"><i class="fa-solid fa-chevron-left"></i></button>
       <h2 id="monthTitle" style="font-size:1.15rem;font-weight:800;letter-spacing:-0.01em;"></h2>
@@ -130,10 +55,10 @@ const activeCats = [...new Set(allPosts.map(p => p._collection))];
     <div class="calendar-grid" id="calGrid"></div>
 
     <div class="cal-legend" style="margin-top:1.5rem;">
-      {Object.entries(categoryLabels).map(([catId, label]) => (
+      {activeCats.map(catId => (
         <div class="cal-legend-item">
           <span class="cal-dot" style={`background:${categoryColors[catId]};`}></span>
-          {label}
+          {categoryLabels[catId]}
         </div>
       ))}
     </div>
@@ -180,9 +105,6 @@ const activeCats = [...new Set(allPosts.map(p => p._collection))];
           if (dayPosts.length) cls.push('has-posts');
 
           var dots = dayPosts.slice(0, 6).map(function(p) {
-            if (p.type === 'scheduled') {
-              return '<span class="cal-dot" style="background:transparent;border:2px solid ' + p.color + ';width:6px;height:6px;border-radius:50%;"></span>';
-            }
             return '<span class="cal-dot" style="background:' + p.color + ';"></span>';
           }).join('');
 
@@ -206,12 +128,7 @@ const activeCats = [...new Set(allPosts.map(p => p._collection))];
         detail.innerHTML =
           '<h3><i class="fa-regular fa-calendar-check" style="margin-right:0.4rem;color:var(--accent);"></i> ' + dateStr + '</h3>' +
           dayPosts.map(function(p) {
-            var icon = p.type === 'scheduled' ? '<span style="width:8px;height:8px;border-radius:50%;border:2px solid ' + p.color + ';flex-shrink:0;display:inline-block;"></span>' : '<span class="cat-dot" style="background:' + p.color + ';width:8px;height:8px;border-radius:50%;flex-shrink:0;"></span>';
-            var badge = p.type === 'scheduled' ? ' <span style="font-size:0.6rem;background:var(--bg-surface);padding:0.1rem 0.4rem;border-radius:99px;color:var(--text-muted);">planifi\u00e9</span>' : '';
-            if (p.href) {
-              return '<a href="' + p.href + '">' + icon + '<span style="flex:1;">' + p.title + badge + '</span><span style="font-size:0.68rem;color:var(--text-muted);font-weight:500;">' + p.label + '</span></a>';
-            }
-            return '<div style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0;border-bottom:1px solid var(--border);">' + icon + '<span style="flex:1;font-size:0.85rem;">' + p.title + badge + '</span><span style="font-size:0.68rem;color:var(--text-muted);font-weight:500;">' + p.label + '</span></div>';
+            return '<a href="' + p.href + '"><span class="cat-dot" style="background:' + p.color + ';width:8px;height:8px;border-radius:50%;flex-shrink:0;"></span><span style="flex:1;">' + p.title + '</span><span style="font-size:0.68rem;color:var(--text-muted);font-weight:500;">' + p.label + '</span></a>';
           }).join('');
 
         detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
