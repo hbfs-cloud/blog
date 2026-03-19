@@ -150,11 +150,12 @@ const dateStr = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeri
     function rerunPostScripts() {
       var container = document.getElementById("postContent");
       if (!container) return;
-      var scripts = container.querySelectorAll("script");
+      var scripts = Array.from(container.querySelectorAll("script"));
       if (!scripts.length) return;
 
       function execScripts() {
         scripts.forEach(function(oldScript) {
+          if (!oldScript.parentNode) return;
           var newScript = document.createElement("script");
           if (oldScript.src) {
             newScript.src = oldScript.src;
@@ -175,20 +176,16 @@ const dateStr = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeri
         execScripts();
       }
     }
-    // Run on load
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", rerunPostScripts);
-    } else {
-      rerunPostScripts();
-    }
-    // Observe for StatiCrypt decryption
+    // Only observe for StatiCrypt decryption — don't run eagerly
+    // (StatiCrypt replaces the body, so we wait for postContent to appear)
     var _rerunDone = false;
-    new MutationObserver(function(mutations) {
+    new MutationObserver(function(mutations, obs) {
       if (_rerunDone) return;
       if (document.getElementById("postContent")) {
         _rerunDone = true;
+        obs.disconnect();
         rerunPostScripts();
       }
-    }).observe(document.body, { childList: true, subtree: true });
+    }).observe(document.documentElement, { childList: true, subtree: true });
   </script>
 </BaseLayout>
