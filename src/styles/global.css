@@ -308,7 +308,7 @@ img { max-width: 100%; height: auto; }
    CARDS — Premium Glass Design
    ============================== */
 
-.card {
+.card { display:block; text-decoration:none; color:inherit;
   background: #ffffff;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
