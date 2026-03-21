@@ -7,6 +7,10 @@ tags: ["ia", "no-code", "vibe-coding", "react", "convex", "betterauth", "claude"
 image: "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=680&h=400&fit=crop"
 ---
 
+## 🎬 La vidéo complète
+
+<iframe width="100%" height="420" src="https://www.youtube.com/embed/lWBvj9_rvuY" frameborder="0" allowfullscreen style="border-radius:12px;margin-bottom:24px;"></iframe>
+
 > 💡 **Point clé** : Le vibe coding n'est pas du no-code. C'est du *low-intent coding* — vous pilotez l'intention, le LLM pilote l'exécution. La frontière entre PM et développeur est en train de disparaître.
 
 ## 🎙️ Ce que dit le podcast IA×No-Code (épisode 7 — mars 2026)
