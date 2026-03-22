@@ -118,7 +118,10 @@ const dateStr = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeri
     if (content && tocSidebar && tocContent) {
       const headings = content.querySelectorAll('h2, h3');
       if (headings.length > 2) {
-        tocSidebar.style.display = 'block';
+        // N'afficher le TOC que sur écran large (>1400px)
+        if (window.innerWidth > 1400) {
+          tocSidebar.style.display = 'block';
+        }
         headings.forEach((h, i) => {
           const id = 'heading-' + i;
           h.id = id;
